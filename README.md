@@ -1,11 +1,11 @@
 # Sisteme-Operative
 Projekti ne sisteme operative
 
-## Komunikimi Klient-Server përmes TCP në C
+# Komunikimi Klient-Server përmes TCP në C
 
 Ky depo përmban dy projekte në gjuhën C që ilustrojnë komunikimin klient-server duke përdorur protokollin TCP/IP. Një projekt është për serverin, ndërsa tjetri për klientin.
 
-# Serveri
+## Serveri
 
 Projekti i serverit është shkruar në skedarin server.c. Ky server pranon lidhje nga klientët dhe i përgjigjet me një mesazh të caktuar. Më poshtë janë disa detaje të rëndësishme për këtë projekt:
 
@@ -16,7 +16,7 @@ Projekti i serverit është shkruar në skedarin server.c. Ky server pranon lidh
 5. Ka një thread shtesë për të dërguar mesazhe nga serveri në klientët.
 
 
-# Klienti
+## Klienti
 
 Projekti i klientit është shkruar në skedarin client.c. Ky klient është i lidhur me serverin në IP adresën "127.0.0.1" dhe portin 5002. Përdoruesi mund të dërgojë kërkesa në server dhe të marrë përgjigje. Më poshtë janë disa detaje të rëndësishme për këtë projekt:
 
@@ -25,7 +25,7 @@ Projekti i klientit është shkruar në skedarin client.c. Ky klient është i l
 3. Klienti merr përgjigjet nga serveri dhe i shfaq ato në konsolë.
 
 
-# Përdorimi
+## Përdorimi
 
 1. Kompiloni kodin duke përdorur komandën gcc:
    gcc server.c -o server
