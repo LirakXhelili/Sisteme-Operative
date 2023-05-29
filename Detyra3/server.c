@@ -10,9 +10,10 @@
 #define SERVER_PORT 5002
 #define MAX_CLIENTS 10
 #define MAX_MSG_SIZE 256
+#define MAX_RSP_SIZE 275
 #define DISCONNECT_MSG "disconnect\n"
 #define CLIENT_MSG "hello server\n"
-#define SERVER_MSG "hello client\n"
+#define SERVER_MSG "hello client"
 
 typedef struct {
     int id;
@@ -20,7 +21,7 @@ typedef struct {
 } Client;
 
 typedef struct {
-    char message[MAX_MSG_SIZE];
+    char message[MAX_RSP_SIZE];
     Client *client;
 } Message;
 
@@ -35,6 +36,7 @@ pthread_cond_t message_cond = PTHREAD_COND_INITIALIZER;
 void *client_thread(void *arg) {
     Client *client = (Client *)arg;
     char buffer[MAX_MSG_SIZE];
+    char response[MAX_RSP_SIZE];
     while (1) {
         ssize_t bytes_read = recv(client->socket, buffer, MAX_MSG_SIZE - 1, 0);
         if (bytes_read > 0) {
@@ -44,17 +46,20 @@ void *client_thread(void *arg) {
             }
             // Process the message here
             printf("Received: %s\n", buffer);
-            if (strcmp(buffer, CLIENT_MSG) == 0) {
-                pthread_mutex_lock(&message_mutex);
+            pthread_mutex_lock(&message_mutex);
                 if (message_count < MAX_CLIENTS) {
+                    //strcpy(response, buffer);
+                    sprintf(response, "Server response-> %s", buffer);
                     Message *message = malloc(sizeof(Message));
-                    strcpy(message->message, SERVER_MSG);
+                    strcpy(message->message, response);
                     message->client = client;
                     message_queue[message_count++] = message;
                     pthread_cond_signal(&message_cond);
                 }
                 pthread_mutex_unlock(&message_mutex);
-            }
+         } else if (bytes_read == 0) {
+            printf("Client disconnected\n");
+            break;
         } else {
             perror("Error receiving message");
             break;
