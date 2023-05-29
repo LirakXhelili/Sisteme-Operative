@@ -49,7 +49,7 @@ void *receive_responses(void *arg) {
         if (bytes_read > 0) {
             buffer[bytes_read] = '\0';
             // Process the response here
-            printf("Received: %s\n", buffer);
+            printf("Received: %s", buffer);
             pthread_mutex_lock(&message_mutex);
             if (message_count < MAX_MSG_SIZE) {
                 strcpy(message_queue[message_count].message, buffer);
@@ -101,4 +101,3 @@ int main() {
 
     return 0;
 }
-
