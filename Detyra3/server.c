@@ -11,8 +11,8 @@
 #define MAX_CLIENTS 10
 #define MAX_MSG_SIZE 256
 #define MAX_RSP_SIZE 275
-#define DISCONNECT_MSG "disconnect\n"
-#define CLIENT_MSG "hello server\n"
+#define DISCONNECT_MSG "disconnect"
+#define CLIENT_MSG "hello server"
 #define SERVER_MSG "hello client"
 
 typedef struct {
@@ -33,6 +33,7 @@ pthread_mutex_t client_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t message_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t message_cond = PTHREAD_COND_INITIALIZER;
 
+
 void *client_thread(void *arg) {
     Client *client = (Client *)arg;
     char buffer[MAX_MSG_SIZE];
@@ -41,11 +42,15 @@ void *client_thread(void *arg) {
         ssize_t bytes_read = recv(client->socket, buffer, MAX_MSG_SIZE - 1, 0);
         if (bytes_read > 0) {
             buffer[bytes_read] = '\0';
+            printf("Received: %s\n", buffer);
             if (strcmp(buffer, DISCONNECT_MSG) == 0) {
+            printf("Client %d disconnected\n", client->id);
                 break;
             }
+            if (strcmp(buffer, CLIENT_MSG) == 0) {
+                strcpy(buffer, SERVER_MSG);
+            }
             // Process the message here
-            printf("Received: %s\n", buffer);
             pthread_mutex_lock(&message_mutex);
                 if (message_count < MAX_CLIENTS) {
                     //strcpy(response, buffer);
@@ -56,9 +61,9 @@ void *client_thread(void *arg) {
                     message_queue[message_count++] = message;
                     pthread_cond_signal(&message_cond);
                 }
-                pthread_mutex_unlock(&message_mutex);
+            pthread_mutex_unlock(&message_mutex);
          } else if (bytes_read == 0) {
-            printf("Client disconnected\n");
+            printf("Client %d disconnected\n", client->id);
             break;
         } else {
             perror("Error receiving message");
@@ -80,7 +85,7 @@ void *message_thread(void *arg) {
         free(message);
         pthread_mutex_unlock(&message_mutex);
     }
-    
+   
 return NULL;
 }
 
@@ -90,6 +95,7 @@ void add_client(Client *client) {
         clients[client_count++] = client;
     }
     pthread_mutex_unlock(&client_mutex);
+    printf("Client %d has joined\n", client->id);
 }
 
 void remove_client(Client *client) {
@@ -119,7 +125,8 @@ int main() {
         perror("Error binding socket");
         return 1;
     }
-
+    printf("-------%s-------\n", "SERVER HAS STARTED");
+   
     if (listen(server_socket, MAX_CLIENTS) == -1) {
         perror("Error listening on socket");
         return 1
@@ -129,7 +136,7 @@ int main() {
     pthread_t message_thread_id;
     pthread_create(&message_thread_id, NULL, message_thread, NULL);
 
-    
+   
 while (1) {
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
@@ -138,7 +145,7 @@ while (1) {
             perror("Error accepting client connection");
             continue;
         }
-
+       
         Client *client = malloc(sizeof(Client));
         client->id = client_count;
         client->socket = client_socket;
