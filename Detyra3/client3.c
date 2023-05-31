@@ -28,9 +28,11 @@ void *send_requests(void *arg) {
     while (1) {
         // Get the request from the user
         fgets(buffer, MAX_MSG_SIZE, stdin);
+        buffer[strcspn(buffer, "\n")] = 0;
         if (strcmp(buffer, DISCONNECT_MSG) == 0) {
             // Send disconnect message to the server
             send(server_socket, buffer, strlen(buffer), 0);
+            pthread_cancel(receive_thread);
             break;
         }
         if (send(server_socket, buffer, strlen(buffer), 0) == -1) {
@@ -49,13 +51,16 @@ void *receive_responses(void *arg) {
         if (bytes_read > 0) {
             buffer[bytes_read] = '\0';
             // Process the response here
-            printf("Received: %s", buffer);
+            printf("Received: %s\n", buffer);
             pthread_mutex_lock(&message_mutex);
             if (message_count < MAX_MSG_SIZE) {
                 strcpy(message_queue[message_count].message, buffer);
                 message_count++;
             }
             pthread_mutex_unlock(&message_mutex);
+        } else if (bytes_read == 0) {
+            printf("Disconnected\n");
+            break;
         } else {
             perror("Error receiving message");
             break;
@@ -82,6 +87,8 @@ int main() {
     if (connect(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
         perror("Error connecting to server");
         return 1;
+    } else {
+        printf("-------%s-------\n", "JOINED SERVER");
     }
 
     pthread_create(&send_thread, NULL, send_requests, &server_socket);
