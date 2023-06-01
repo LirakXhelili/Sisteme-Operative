@@ -26,7 +26,7 @@ typedef struct {
 } Message;
 
 Client *clients[MAX_CLIENTS];
-Message *message_queue[MAX_CLIENTS];
+Message *messageList[MAX_CLIENTS];
 int client_count = 0;
 int message_count = 0;
 pthread_mutex_t client_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -58,7 +58,7 @@ void *client_thread(void *arg) {
                     Message *message = malloc(sizeof(Message));
                     strcpy(message->message, response);
                     message->client = client;
-                    message_queue[message_count++] = message;
+                    messageList[message_count++] = message;
                     pthread_cond_signal(&message_cond);
                 }
             pthread_mutex_unlock(&message_mutex);
@@ -80,7 +80,7 @@ void *message_thread(void *arg) {
         while (message_count == 0) {
             pthread_cond_wait(&message_cond, &message_mutex);
         }
-        Message *message = message_queue[--message_count];
+        Message *message = messageList[--message_count];
         send(message->client->socket, message->message, strlen(message->message), 0);
         free(message);
         pthread_mutex_unlock(&message_mutex);
