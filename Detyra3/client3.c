@@ -16,7 +16,7 @@ typedef struct {
     char message[MAX_MSG_SIZE];
 } Message;
 
-Message message_queue[MAX_MSG_SIZE];
+Message messageList[MAX_MSG_SIZE];
 int message_count = 0;
 
 pthread_t send_thread, receive_thread;
@@ -54,7 +54,7 @@ void *receive_responses(void *arg) {
             printf("Received: %s\n", buffer);
             pthread_mutex_lock(&message_mutex);
             if (message_count < MAX_MSG_SIZE) {
-                strcpy(message_queue[message_count].message, buffer);
+                strcpy(messageList[message_count].message, buffer);
                 message_count++;
             }
             pthread_mutex_unlock(&message_mutex);
@@ -100,7 +100,7 @@ int main() {
     // Process messages in the queue
     pthread_mutex_lock(&message_mutex);
     for (int i = 0; i < message_count; i++) {
-        printf("Message in queue: %s\n", message_queue[i].message);
+        printf("Message in queue: %s\n", messageList[i].message);
     }
     pthread_mutex_unlock(&message_mutex);
 
